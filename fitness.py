@@ -151,19 +151,20 @@ def get_member(id):
         length = fields.Int()
 
     class Meta:
-        fields = ("member_id", "focal_point", "length")
+        fields = ("member_id", "session_name", "session_time",
+                  "session_date")
 
 workout_schema = MemberSchema()
 workouts_schema = MemberSchema(many= True)
 
-@app.route("/workouts", methods = ['GET'])
+@app.route("/workout_sessions", methods = ['GET'])
 def get_workout_sessions():
     conn = connection()
     if conn is not None:
         try:
             cursor = conn.cursor(dictionary= True)
 
-            query = 'SELECT * FROM workoutSessions;'
+            query = 'SELECT * FROM workout_sessions;'
 
             cursor.execute(query)
 
@@ -177,10 +178,10 @@ def get_workout_sessions():
         return jsonify({"error": "Databse connection failed"}), 500
     
 
-@app.route("/workouts/<int:id>", methods = ["PUT"])
+@app.route("/workout_sessions/<int:id>", methods = ["PUT"])
 def find_members(id):
     try:
-        member_data = member_schema.load(request.json)
+        member_data = workouts_schema.load(request.json)
     except ValidationError as e:
         return jsonify(e.messages), 400
     
@@ -197,6 +198,9 @@ def find_members(id):
         finally :
             cursor.close()
             conn.close()
+            return jsonify(member_schema.jsonify(member))
+    else:
+        return jsonify({"error": "Database connection failed"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
